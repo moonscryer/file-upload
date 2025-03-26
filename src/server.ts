@@ -2,9 +2,16 @@
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import chalk from "chalk";
-import { PORT } from "./utils/envs";
+import {
+  CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET,
+  CLOUDINARY_CLOUD_NAME,
+  PORT,
+} from "./utils/envs";
 import multer from "multer";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 // Variables
 const app = express();
@@ -15,15 +22,27 @@ app.use(express.json());
 app.use(express.static("src/public"));
 app.use("/uploads", express.static("uploads"));
 
-const storage = multer.diskStorage({
-  destination: "./uploads",
-  filename: function (req, file, cb) {
-    const newName =
-      file.fieldname + "-" + Date.now() + path.extname(file.originalname);
-    cb(null, newName);
-  },
+// const storage = multer.diskStorage({
+//   destination: "./uploads",
+//   filename: function (req, file, cb) {
+//     const newName =
+//       file.fieldname + "-" + Date.now() + path.extname(file.originalname);
+//     cb(null, newName);
+//   },
+// });
+// const upload = multer({ storage: storage, limits: { fileSize: 1000000 } });
+cloudinary.config({
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
 });
-const upload = multer({ storage: storage, limits: { fileSize: 1000000 } });
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "uploads",
+  } as any,
+});
+const upload = multer({});
 
 // Routes
 
